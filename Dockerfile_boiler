@@ -1,0 +1,41 @@
+# Base images 基础镜像
+FROM bengenseo/os7py9:1.0
+
+#MAINTAINER 维护者信息
+MAINTAINER bengenseo@126.com
+
+# git
+RUN yum install git -y
+RUN git config --global user.name "bengenseo"
+RUN git config --global user.email "bengenseo@126.com"
+
+# git拉代码  /data/boiler
+WORKDIR /data/
+RUN git clone https://github.com/bengenseo/boiler.git
+
+# 虚拟环境
+WORKDIR /data/boiler/
+RUN pip3.9 install virtualenv
+RUN virtualenv  /envs/boiler --python=python3.9
+RUN /envs/boiler/bin/pip3.9 install -r requirements.txt
+
+# 收集静态资源  /data/allstatic/
+WORKDIR /data/boiler/
+RUN /envs/boiler/bin/python manage.py collectstatic
+
+# 安装uwsgi
+RUN /envs/boiler/bin/pip3.9 install uwsgi
+
+# 安装nginx
+WORKDIR /data/boiler/
+RUN rpm -Uvh  http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+RUN yum install nginx -y
+# 易错点
+RUN cp /data/boiler/boiler.conf /etc/nginx/myboiler.conf
+
+# 运行项目
+WORKDIR /data/boiler
+
+# CMD ["/envs/boiler/bin/uwsgi","--ini","uwsgi.ini"]
+# CMD ["nginx","-c","/etc/nginx/myboiler.conf","-g","daemon off;"]
+CMD ["/bin/sh","run.sh"]
