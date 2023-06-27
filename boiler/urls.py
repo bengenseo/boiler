@@ -20,7 +20,7 @@ from django.shortcuts import render, HttpResponse
 
 
 def index(request):
-    return HttpResponse('首页')
+    return HttpResponse('首页111')
 
 
 urlpatterns = [
